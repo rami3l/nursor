@@ -52,9 +52,9 @@ Predict the next change that the programmer will make to the file.
 Please note that your answer should also be a unified diff,
 and that the diff should be relative to the initial file, not the file after the programmer's changes."
      (format (:path f0) (:text f0) diff)
-     (->> (assoc {:role "user"} :content) vector)
-     (->> (llm-respond llm))
-     (-> :choices first :message :content))))
+     (->> (assoc {:role "user"} :content) vector (llm-respond llm))
+     (-> :choices first :message :content)
+     (doto (->> (printf "==== LLM ==== \n%s\n"))))))
 
 (defn- llm-predict-udiff [& args]
   (-> (apply llm-predict-udiff-raw args)
@@ -73,4 +73,4 @@ and that the diff should be relative to the initial file, not the file after the
         [f0 f1] (map resource->DiffFile ["before.mbt" "middle.mbt"])]
     (-> (time (llm-predict-udiff llm f0 f1))
         (->> (apply-udiff (:text f0)))
-        println)))
+        (doto (->> (printf "==== Prediction ====\n%s\n"))))))
