@@ -30,7 +30,8 @@ and that the diff should be relative to the initial file, not the file after the
 (defn -main
   [& _args]
   (let [llm (llm/env->LLMModel)
-        [f0 f1] (map diff/resource->DiffFile ["before.mbt" "middle.mbt"])]
-    (-> (time (llm-predict-udiff llm f0 f1))
-        (->> (diff/apply-udiff (:text f0)))
-        (doto (->> (printf "==== Prediction ====\n%s\n"))))))
+        [f0 f1] (map diff/resource-path->DiffFile ["before.mbt" "middle.mbt"])]
+    (-> (llm-predict-udiff llm f0 f1)
+        time
+        (#(diff/udiff-apply (:text f0) %))
+        (doto (#(printf "==== Prediction ====\n%s\n" %))))))

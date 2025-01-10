@@ -5,7 +5,7 @@
 
 (defrecord DiffFile [path text])
 
-(defn resource->DiffFile [path]
+(defn resource-path->DiffFile [path]
   (->> path (io/resource) slurp (DiffFile. path)))
 
 (defn udiff [old-file new-file]
@@ -16,9 +16,34 @@
         udiff (. UnifiedDiffUtils generateUnifiedDiff p0 p1 ls0 diff 0)]
     (str/join "\n" udiff)))
 
-(defn apply-udiff [s udiff]
-  (-> udiff
-      str/split-lines
-      (->> (. UnifiedDiffUtils parseUnifiedDiff))
-      (. applyTo (str/split-lines s))
-      (->> (str/join "\n"))))
+(defn- udiff-apply-lns [s-lns udiff-lns]
+  (as-> udiff-lns $
+    (. UnifiedDiffUtils parseUnifiedDiff $)
+    (. $ applyTo s-lns)
+    (str/join "\n" $)))
+
+(defn- udiff-extract-src-hunk-start [hunk-header]
+  (->> hunk-header (re-seq #"^@@[ ]+-(\d+)") first second Integer/parseInt))
+
+(defn- relocate-hunk-leader [ln-pattern base s-lns]
+  (->> (range 1 (count s-lns)) (mapcat #(vector %1 (- %1)))
+       (map #(+ base %))
+       (filter #(str/ends-with? ln-pattern (get s-lns %)))
+       first))
+
+(defn- udiff-lns-rectify-start [s-lns udiff-lns]
+  (let [hunk-headers (keep-indexed #(when (re-find #"^@@" %2) (vector %1 %2)) udiff-lns)
+        udiff-lns (transient udiff-lns)]
+    (doseq [[i hunk-header] hunk-headers
+            :let [udiff-hunk-leader (->> i inc (get udiff-lns))
+                  src-hunk-start (udiff-extract-src-hunk-start hunk-header)
+                  src-hunk-start (dec src-hunk-start)]
+            :when (not (str/ends-with? udiff-hunk-leader (get s-lns src-hunk-start)))]
+      (let [start (relocate-hunk-leader udiff-hunk-leader src-hunk-start s-lns)]
+        (assoc! udiff-lns i (format "@@ -%d +1 @@" (inc start)))))
+    (persistent! udiff-lns)))
+
+(defn udiff-apply [s udiff & {:keys [strict] :or {strict false}}]
+  (let [[s-lns udiff-lns] (map str/split-lines [s udiff])]
+    (udiff-apply-lns s-lns (if strict udiff-lns
+                             (udiff-lns-rectify-start s-lns udiff-lns)))))
