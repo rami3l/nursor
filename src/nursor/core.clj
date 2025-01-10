@@ -1,7 +1,7 @@
 (ns nursor.core
-  (:require [clojure.string :as str]
-            [nursor.diff :as diff]
-            [nursor.llm :as llm])
+  (:require [nursor.diff :as diff]
+            [nursor.llm :as llm]
+            [nursor.text :as text])
   (:gen-class))
 
 (defn- llm-predict-udiff-raw [llm f0 f1]
@@ -25,8 +25,7 @@ and that the diff should be relative to the initial file, not the file after the
      (doto (->> (printf "==== LLM ==== \n%s\n"))))))
 
 (defn- llm-predict-udiff [& args]
-  (-> (apply llm-predict-udiff-raw args)
-      (str/split #"```.*\n" 2) second (str/split #"```" 2) first))
+  (->> args (apply llm-predict-udiff-raw) text/extract-code-block))
 
 (defn -main
   [& _args]
