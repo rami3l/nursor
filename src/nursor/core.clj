@@ -21,7 +21,7 @@ Please note that your answer should also be a unified diff,
 and that the diff should be relative to the initial file, not the file after the programmer's changes."
      (format (:path f0) (:text f0) diff)
      (->> (assoc {:role "user"} :content) vector (llm/respond llm))
-     (-> :choices first :message :content)
+     :choices first :message :content
      (doto (->> (printf "==== LLM ==== \n%s\n"))))))
 
 (defn- llm-predict-udiff [& args]
@@ -34,4 +34,4 @@ and that the diff should be relative to the initial file, not the file after the
     (-> (llm-predict-udiff llm f0 f1)
         time
         (#(diff/udiff-apply (:text f0) %))
-        (doto (#(printf "==== Prediction ====\n%s\n" %))))))
+        (doto (->> (printf "==== Prediction ====\n%s\n"))))))
