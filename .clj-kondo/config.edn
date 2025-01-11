@@ -1,0 +1,11 @@
+{:linters {:unused-namespace {:level :warning}
+           :unused-referred-var {:exclude {clojure.test [is deftest testing]}}
+           :type-mismatch {:level :warning}
+           :reduce-without-init {:level :warning}
+           :missing-docstring {:level :off}
+           :unsorted-required-namespaces {:level :warning}
+           :unsorted-imports {:level :warning}
+           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}
+           :def-fn {:level :warning}
+           :self-requiring-namespace {:level :warning}
+           :equals-expected-position {:level :warning}}}
