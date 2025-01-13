@@ -1,12 +1,8 @@
 (ns nursor.diff
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str])
+  (:require [clojure.string :as str])
   (:import [com.github.difflib DiffUtils UnifiedDiffUtils]))
 
 (defrecord DiffFile [path text])
-
-(defn resource-path->DiffFile [path]
-  (->> path (io/resource) slurp (DiffFile. path)))
 
 (defn udiff [old-file new-file]
   (let [{p0 :path s0 :text} old-file
@@ -26,8 +22,7 @@
   (->> hunk-header (re-seq #"^@@[ ]+-(\d+)") first second Integer/parseInt))
 
 (defn- relocate-hunk-leader [ln-pattern base s-lns]
-  (->> (range 1 (count s-lns)) (mapcat #(vector %1 (- %1)))
-       (map #(+ base %))
+  (->> (range 1 (count s-lns)) (mapcat #(vector (+ base %1) (- base %1)))
        (filter #(str/ends-with? ln-pattern (get s-lns %)))
        first))
 
