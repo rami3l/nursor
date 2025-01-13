@@ -1,9 +1,24 @@
 (ns nursor.diff-test
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest testing is]]
-            [nursor.diff :refer [resource-path->DiffFile udiff-apply]]))
+            [nursor.diff :refer [udiff-apply]]))
 
-(def ^:private test-src (:text (resource-path->DiffFile "before.mbt")))
+(def ^:private test-src "///|
+/// Return the front element from a deque, or `None` if it is empty.
+///
+/// # Example
+/// ```
+/// let dv = @deque.of([1, 2, 3, 4, 5])
+/// assert_eq!(dv.front(), Some(1))
+/// ```
+pub fn T::front[A](self : T[A]) -> A? {
+  if self.len == 0 {
+    None
+  } else {
+    Some(self.buf[self.head])
+  }
+}
+")
 
 (defn- replace-ln [s idx ln]
   (as-> s $ (str/split-lines $) (assoc $ (dec idx) ln) (str/join "\n" $)))
