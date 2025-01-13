@@ -21,9 +21,12 @@
 (defn- udiff-extract-src-hunk-start [hunk-header]
   (->> hunk-header (re-seq #"^@@[ ]+-(\d+)") first second Integer/parseInt))
 
+(defn diff-ln-matches? [diff-ln src-ln]
+  (-> diff-ln (str/replace-first #"^-?\s+" "") (= (str/triml src-ln))))
+
 (defn- relocate-hunk-leader [ln-pattern base s-lns]
   (->> (range 1 (count s-lns)) (mapcat #(vector (+ base %1) (- base %1)))
-       (filter #(str/ends-with? ln-pattern (get s-lns %)))
+       (filter #(diff-ln-matches? ln-pattern (get s-lns %)))
        first))
 
 (defn- udiff-lns-rectify-start [s-lns udiff-lns]
@@ -33,7 +36,7 @@
             :let [udiff-hunk-leader (get udiff-lns (inc i))
                   src-hunk-start (udiff-extract-src-hunk-start hunk-header)
                   src-hunk-start (dec src-hunk-start)]
-            :when (not (str/ends-with? udiff-hunk-leader (get s-lns src-hunk-start)))]
+            :when (not (diff-ln-matches? udiff-hunk-leader (get s-lns src-hunk-start)))]
       (let [start (relocate-hunk-leader udiff-hunk-leader src-hunk-start s-lns)]
         (assoc! udiff-lns i (format "@@ -%d +1 @@" (inc start)))))
     (persistent! udiff-lns)))

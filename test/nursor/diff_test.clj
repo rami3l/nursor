@@ -1,7 +1,7 @@
 (ns nursor.diff-test
   (:require [clojure.string :as str]
-            [clojure.test :refer [deftest testing is]]
-            [nursor.diff :refer [udiff-apply]]))
+            [clojure.test :refer [deftest is testing]]
+            [nursor.diff :refer [diff-ln-matches? udiff-apply]]))
 
 (def ^:private test-src "///|
 /// Return the front element from a deque, or `None` if it is empty.
@@ -20,11 +20,25 @@ pub fn T::front[A](self : T[A]) -> A? {
 }
 ")
 
+(deftest diff-ln-matches-test
+  (testing "should detect matching line pairs"
+    (is (diff-ln-matches?
+         "-    Some(self.buf[self.head])"
+         "    Some(self.buf[self.head])")))
+
+  (testing "should detect non-matching line pairs"
+    (is (not (diff-ln-matches?
+              "-    Some(self.buf[self.head])"
+              "    Some(self.buf[self.tail])")))
+    (is (not (diff-ln-matches?
+              "+    Some(self.buf[self.head])"
+              "    Some(self.buf[self.head])")))))
+
+
 (defn- replace-ln [s idx ln]
   (as-> s $ (str/split-lines $) (assoc $ (dec idx) ln) (str/join "\n" $)))
 
 (deftest udiff-apply-test
-
   (testing "can apply udiff without rectifying start line"
     (is (= (replace-ln test-src 13 "    Some(self.buf[self.tail])")
            (as-> "--- before.mbt
