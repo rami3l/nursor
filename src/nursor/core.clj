@@ -1,5 +1,6 @@
 (ns nursor.core
-  (:require [nursor.diff :as diff]
+  (:require [clojure.java.io :as io]
+            [nursor.diff :as diff]
             [nursor.llm :as llm]
             [nursor.text :as text])
   (:gen-class))
@@ -27,10 +28,15 @@ and that the diff should be relative to the initial file, not the file after the
 (defn- llm-predict-udiff [& args]
   (->> args (apply llm-predict-udiff-raw) text/extract-code-block))
 
+(defn- diff-file-pairs [name]
+  (->> ["before/" "middle/"]
+       (map #(str % name))
+       (map #(->> % io/resource slurp (diff/->DiffFile %)))))
+
 (defn -main
   [& _args]
   (let [llm (llm/env->LLMModel)
-        [f0 f1] (map diff/resource-path->DiffFile ["before.mbt" "middle.mbt"])]
+        [f0 f1] (diff-file-pairs "deque.mbt")]
     (-> (llm-predict-udiff llm f0 f1)
         time
         (#(diff/udiff-apply (:text f0) %))
