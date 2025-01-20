@@ -5,5 +5,6 @@
                  [io.github.java-diff-utils/java-diff-utils "4.15"]]
   :main ^:skip-aot nursor.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all
+  :profiles {:dev {:dependencies [[orchestra "2021.01.01-1"]]}
+             :uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

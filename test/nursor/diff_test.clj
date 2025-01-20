@@ -1,7 +1,10 @@
 (ns nursor.diff-test
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
-            [nursor.diff :refer [udiff-apply]]))
+            [nursor.diff :refer [udiff-apply]]
+            [orchestra.spec.test :as st]))
+
+(st/instrument)
 
 (def ^:private test-src "///|
 /// Return the front element from a deque, or `None` if it is empty.
