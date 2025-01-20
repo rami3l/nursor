@@ -19,7 +19,7 @@
 Predict the next change that the programmer will make to the file.
 
 Please note that your answer should also be a unified diff,
-and that the diff should be relative to the initial file, not the file after the programmer's changes."
+and that the diff should be relative to the programmer's changes, not to the original file."
      (format (:path f0) (:text f0) diff)
      (->> (assoc {:role "user"} :content) vector (llm/respond llm))
      :choices first :message :content
