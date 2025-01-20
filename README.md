@@ -3,10 +3,10 @@
 This is an experiment to evaluate the feasibility of using a public LLM model to predict code changes
 in the form of unified diffs.
 
-``````console
+````console
 > lein run
-==== LLM ==== 
-Based on the context, I predict the programmer is creating a `back()` method to complement the `front()` method for a deque data structure. 
+==== LLM ====
+Based on the context, I predict the programmer is creating a `back()` method to complement the `front()` method for a deque data structure.
 The most natural next change would be to modify the implementation to access the last element instead of the first element.
 
 Here's my predicted unified diff against the original file:
@@ -59,4 +59,61 @@ pub fn T::back[A](self : T[A]) -> A? {
     Some(self.buf[last_index])
   }
 }
-``````
+==== LLM ====
+Based on the changes made by the programmer, it seems they are refactoring the `sqrt_iter` function to use the newly introduced helper functions `is_good_enough` and `improve_guess`. The next logical change would be to update the `sqrt_iter` function to utilize these helper functions.
+
+Here is the predicted unified diff representing the next change:
+
+```diff
+--- middle/newton.mbt
++++ after/newton.mbt
+@@ -13,10 +13,8 @@
+ fn sqrt_iter(guess : Float, x : Float) -> Float {
+   loop guess, x {
+     guess, x => {
+-      guard abs(guess * guess - x) < 0.001 else {
+-        continue (guess + x / guess) / 2.0, x
+-      }
+-      guess
++      guard is_good_enough(guess, x) else { continue improve_guess(guess, x), x }
++      return guess
+     }
+   }
+ }
+```
+
+This change replaces the inline logic in `sqrt_iter` with calls to `is_good_enough` and `improve_guess`, making the code more modular and easier to read. The `return` keyword is also added to make it explicit that `guess` is the final value to be returned when the loop exits.
+"Elapsed time: 7376.45975 msecs"
+==== Prediction ====
+///|
+pub fn sqrt(x : Float) -> Float {
+  sqrt_iter(1.0, x)
+}
+
+///|
+fn sqrt_iter(guess : Float, x : Float) -> Float {
+  loop guess, x {
+    guess, x => {
+      guard is_good_enough(guess, x) else { continue improve_guess(guess, x), x }
+      return guess
+    }
+  }
+}
+
+///|
+fn abs(x : Float) -> Float {
+  guard x >= 0 else { -x }
+  x
+}
+
+///|
+fn is_good_enough(guess : Float, x : Float) -> Bool {
+  abs(guess * guess - x) < 0.001
+}
+
+///|
+fn improve_guess(guess : Float, x : Float) -> Float {
+  (guess + x / guess) / 2.0
+}
+
+````

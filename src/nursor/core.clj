@@ -35,9 +35,9 @@ and that the diff should be relative to the programmer's changes, not to the ori
 
 (defn -main
   [& _args]
-  (let [llm (llm/env->Model)
-        [f0 f1] (diff-file-pairs "deque.mbt")]
-    (-> (llm-predict-udiff llm f0 f1)
-        time
-        (#(diff/udiff-apply (:text f0) %))
-        (doto (->> (printf "==== Prediction ====\n%s\n"))))))
+  (let [llm (llm/env->Model)]
+    (doseq [[f0 f1] (map diff-file-pairs ["deque.mbt" "newton.mbt"])]
+      (-> (llm-predict-udiff llm f0 f1)
+          time
+          (#(diff/udiff-apply (:text f1) %))
+          (doto (->> (printf "==== Prediction ====\n%s\n")))))))
