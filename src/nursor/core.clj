@@ -35,7 +35,7 @@ and that the diff should be relative to the initial file, not the file after the
 
 (defn -main
   [& _args]
-  (let [llm (llm/env->LLMModel)
+  (let [llm (llm/env->Model)
         [f0 f1] (diff-file-pairs "deque.mbt")]
     (-> (llm-predict-udiff llm f0 f1)
         time

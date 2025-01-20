@@ -2,12 +2,12 @@
   (:require [nursor.env :refer [env]]
             [wkok.openai-clojure.api :as openai]))
 
-(defrecord LLMModel [name api-key api-endpoint])
+(defrecord Model [name api-key api-endpoint])
 
-(defn env->LLMModel []
+(defn env->Model []
   (->> ["OPENAI_MODEL_NAME" "OPENAI_API_KEY" "OPENAI_API_ENDPOINT"]
        (map #(.get env %))
-       (apply ->LLMModel)))
+       (apply ->Model)))
 
 (defn respond [model messages]
   (openai/create-chat-completion
